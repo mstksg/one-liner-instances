@@ -14,7 +14,8 @@
 @version 0.1.0.0
 
 
--- | Derived methods for Semigroup and Monoid.
+-- | Derived methods for Semigroup and Monoid, using
+--   <a>Generics.OneLiner</a> and <a>GHC.Generics</a>.
 --   
 --   Can be used for any types (deriving <a>Generic</a>) made with a single
 --   constructor, where every field is an instance of <a>Semigroup</a> (or
@@ -59,7 +60,8 @@ instance (Generics.OneLiner.Internal.ADTRecord a, Generics.OneLiner.Internal.Con
 instance (Generics.OneLiner.Internal.ADTRecord a, Generics.OneLiner.Internal.Constraints (Data.Monoid.OneLiner.GMonoid a) GHC.Base.Monoid) => GHC.Base.Monoid (Data.Monoid.OneLiner.GMonoid a)
 
 
--- | Derived methods for numeric typeclasses.
+-- | Derived methods for numeric typeclasses, using
+--   <a>Generics.OneLiner</a> and <a>GHC.Generics</a>.
 --   
 --   Can be used for any types (deriving <a>Generic</a>) made with a single
 --   constructor, where every field is an instance of <a>Num</a> (or
