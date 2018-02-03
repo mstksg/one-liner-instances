@@ -2,7 +2,12 @@
 -- See Hoogle, http://www.haskell.org/hoogle/
 
 
--- | Please see the README on Github at
+-- | Generics-based implementations for common typeclasses using one-liner
+--   
+--   Provides generics-based implementations for common typeclasses
+--   (Numeric ones
+--   
+--   Please see the README on Github at
 --   <a>https://github.com/mstksg/one-liner-instances#readme</a>
 @package one-liner-instances
 @version 0.1.0.0
