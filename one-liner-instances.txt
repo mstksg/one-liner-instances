@@ -2,10 +2,11 @@
 -- See Hoogle, http://www.haskell.org/hoogle/
 
 
--- | Generics-based implementations for common typeclasses using one-liner
+-- | Generics-based implementations for common typeclasses
 --   
---   Provides generics-based implementations for common typeclasses
---   (Numeric ones
+--   Provides generics-based implementations for common typeclasses using
+--   Generics. For now, has implementations for Numeric typeclasses (Num,
+--   Fractional, and Floating) and Semigroup and Monoid.
 --   
 --   Please see the README on Github at
 --   <a>https://github.com/mstksg/one-liner-instances#readme</a>
