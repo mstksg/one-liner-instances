@@ -17,7 +17,8 @@
 -- Stability   : unstable
 -- Portability : portable
 --
--- Derived methods for numeric typeclasses.
+-- Derived methods for numeric typeclasses, using "Generics.OneLiner" and
+-- "GHC.Generics".
 --
 -- Can be used for any types (deriving 'Generic') made with a single
 -- constructor, where every field is an instance of 'Num' (or 'Fractional'
