@@ -1,5 +1,5 @@
 name:                one-liner-instances
-version:             0.1.0.0
+version:             0.1.1.0
 github:              "mstksg/one-liner-instances"
 license:             BSD3
 author:              "Justin Le"
@@ -31,6 +31,8 @@ dependencies:
 library:
   source-dirs: src
   exposed-modules:
-  - Numeric.OneLiner
+  - Data.Bounded.OneLiner
   - Data.Monoid.OneLiner
+  - Data.Ord.OneLiner
+  - Numeric.OneLiner
   ghc-options: -Wall

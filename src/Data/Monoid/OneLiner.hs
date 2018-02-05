@@ -17,15 +17,16 @@
 -- Stability   : unstable
 -- Portability : portable
 --
--- Derived methods for Semigroup and Monoid, using "Generics.OneLiner" and
--- "GHC.Generics".
+-- Derived methods for 'Semigroup' and 'Monoid', using "Generics.OneLiner"
+-- and "GHC.Generics".
 --
 -- Can be used for any types (deriving 'Generic') made with a single
 -- constructor, where every field is an instance of 'Semigroup' (or
 -- 'Monoid', depending on the function).
 --
 -- Also includes a newtype wrapper that imbues any such data type with
--- instant 'Semigroup' and 'Monoid' instances.
+-- instant 'Semigroup' and 'Monoid' instances, which can one day be used
+-- with /DerivingVia/ syntax to derive instances automatically.
 --
 
 module Data.Monoid.OneLiner (
@@ -43,6 +44,7 @@ import           Data.Data
 import           Data.Semigroup
 import           GHC.Generics
 import           Generics.OneLiner
+import           Generics.OneLiner.Instances.Internal
 
 -- | If @a@ is a data type with a single constructor whose fields are all
 -- instances of 'Semigroup', then @'GMonoid' a@ has a 'Semigroup' instance.
@@ -50,17 +52,28 @@ import           Generics.OneLiner
 -- If @a@ is a data type with a single constructor whose fields are all
 -- instances of 'Monoid', then @'GMonoid' a@ has a 'Monoid' instance.
 --
+-- Will one day be able to be used with /DerivingVia/ syntax, to derive
+-- instances automatically.
+--
 newtype GMonoid a = GMonoid { getGMonoid :: a }
   deriving (Eq, Ord, Show, Read, Data, Generic, Functor, Foldable, Traversable)
 
-instance (ADTRecord a, Constraints (GMonoid a) Semigroup)
+instance ( ADTRecord a
+         , Constraints a Semigroup
+         )
       => Semigroup (GMonoid a) where
-    (<>) = gSemigroup @(GMonoid a)
+    (<>) = c2 (gSemigroup @a)
+    {-# INLINE (<>) #-}
 
-instance (ADTRecord a, Constraints (GMonoid a) Monoid)
+instance ( ADTRecord a
+         , Constraints a Semigroup
+         , Constraints a Monoid
+         )
       => Monoid (GMonoid a) where
-    mappend = gMappend
-    mempty  = gMempty
+    mappend = c2 (gMappend @a)
+    {-# INLINE mappend #-}
+    mempty  = c0 (gMempty @a)
+    {-# INLINE mempty #-}
 
 
 -- | Semigroup append ('<>') implemented by calling '<>' on the components.
@@ -68,6 +81,7 @@ gSemigroup
     :: forall a. (ADTRecord a, Constraints a Semigroup)
     => a -> a -> a
 gSemigroup = binaryOp @Semigroup (<>)
+{-# INLINE gSemigroup #-}
 
 -- | Monoid append ('mappend') implemented by calling '<>' on the
 -- components.
@@ -75,6 +89,7 @@ gMappend
     :: forall a. (ADTRecord a, Constraints a Monoid)
     => a -> a -> a
 gMappend = binaryOp @Monoid mappend
+{-# INLINE gMappend #-}
 
 -- | Monoid identity ('mempty') implemented by using 'mempty' for all of
 -- the components.
@@ -82,4 +97,5 @@ gMempty
     :: forall a. (ADTRecord a, Constraints a Monoid)
     => a
 gMempty = nullaryOp @Monoid mempty
+{-# INLINE gMempty #-}
 
