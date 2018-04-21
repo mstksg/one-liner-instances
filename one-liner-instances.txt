@@ -5,16 +5,55 @@
 -- | Generics-based implementations for common typeclasses
 --   
 --   Provides generics-based implementations for common typeclasses using
---   Generics. For now, has implementations for Numeric typeclasses (Num,
---   Fractional, and Floating) and Semigroup and Monoid.
+--   Generics.
 --   
 --   Please see the README on Github at
 --   <a>https://github.com/mstksg/one-liner-instances#readme</a>
 @package one-liner-instances
-@version 0.1.0.0
+@version 0.1.1.0
 
 
--- | Derived methods for Semigroup and Monoid, using
+-- | Derived methods for <a>Bounded</a>, using <a>Generics.OneLiner</a> and
+--   <a>GHC.Generics</a>.
+--   
+--   Can be used for any types (deriving <a>Generic</a>) where every field
+--   is an instance of <a>Bounded</a>.
+--   
+--   Also includes a newtype wrapper that imbues any such data type with an
+--   instant <a>Bounded</a> instance, which can one day be used with
+--   <i>DerivingVia</i> syntax to derive instances automatically.
+module Data.Bounded.OneLiner
+
+-- | If <tt>a</tt> is a data type whose fields are all instances of
+--   <a>Bounded</a>, then <tt><a>GBounded</a> a</tt> has a <a>Bounded</a>
+--   instance.
+--   
+--   Will one day be able to be used with <i>DerivingVia</i> syntax, to
+--   derive instances automatically.
+newtype GBounded a
+GBounded :: a -> GBounded a
+[getGBounded] :: GBounded a -> a
+
+-- | <a>minBound</a> implemented by using <a>minBound</a> for all of the
+--   components for the first constructor
+gMinBound :: forall a. (ADT a, Constraints a Bounded) => a
+
+-- | <a>maxBound</a> implemented by using <a>maxBound</a> for all of the
+--   components for the last constructor
+gMaxBound :: forall a. (ADT a, Constraints a Bounded) => a
+instance Data.Traversable.Traversable Data.Bounded.OneLiner.GBounded
+instance Data.Foldable.Foldable Data.Bounded.OneLiner.GBounded
+instance GHC.Base.Functor Data.Bounded.OneLiner.GBounded
+instance GHC.Generics.Generic (Data.Bounded.OneLiner.GBounded a)
+instance Data.Data.Data a => Data.Data.Data (Data.Bounded.OneLiner.GBounded a)
+instance GHC.Read.Read a => GHC.Read.Read (Data.Bounded.OneLiner.GBounded a)
+instance GHC.Show.Show a => GHC.Show.Show (Data.Bounded.OneLiner.GBounded a)
+instance GHC.Classes.Ord a => GHC.Classes.Ord (Data.Bounded.OneLiner.GBounded a)
+instance GHC.Classes.Eq a => GHC.Classes.Eq (Data.Bounded.OneLiner.GBounded a)
+instance (Generics.OneLiner.Internal.ADT a, Generics.OneLiner.Internal.Constraints a GHC.Enum.Bounded) => GHC.Enum.Bounded (Data.Bounded.OneLiner.GBounded a)
+
+
+-- | Derived methods for <a>Semigroup</a> and <a>Monoid</a>, using
 --   <a>Generics.OneLiner</a> and <a>GHC.Generics</a>.
 --   
 --   Can be used for any types (deriving <a>Generic</a>) made with a single
@@ -22,7 +61,9 @@
 --   <a>Monoid</a>, depending on the function).
 --   
 --   Also includes a newtype wrapper that imbues any such data type with
---   instant <a>Semigroup</a> and <a>Monoid</a> instances.
+--   instant <a>Semigroup</a> and <a>Monoid</a> instances, which can one
+--   day be used with <i>DerivingVia</i> syntax to derive instances
+--   automatically.
 module Data.Monoid.OneLiner
 
 -- | If <tt>a</tt> is a data type with a single constructor whose fields
@@ -32,6 +73,9 @@ module Data.Monoid.OneLiner
 --   If <tt>a</tt> is a data type with a single constructor whose fields
 --   are all instances of <a>Monoid</a>, then <tt><a>GMonoid</a> a</tt> has
 --   a <a>Monoid</a> instance.
+--   
+--   Will one day be able to be used with <i>DerivingVia</i> syntax, to
+--   derive instances automatically.
 newtype GMonoid a
 GMonoid :: a -> GMonoid a
 [getGMonoid] :: GMonoid a -> a
@@ -56,8 +100,79 @@ instance GHC.Read.Read a => GHC.Read.Read (Data.Monoid.OneLiner.GMonoid a)
 instance GHC.Show.Show a => GHC.Show.Show (Data.Monoid.OneLiner.GMonoid a)
 instance GHC.Classes.Ord a => GHC.Classes.Ord (Data.Monoid.OneLiner.GMonoid a)
 instance GHC.Classes.Eq a => GHC.Classes.Eq (Data.Monoid.OneLiner.GMonoid a)
-instance (Generics.OneLiner.Internal.ADTRecord a, Generics.OneLiner.Internal.Constraints (Data.Monoid.OneLiner.GMonoid a) Data.Semigroup.Semigroup) => Data.Semigroup.Semigroup (Data.Monoid.OneLiner.GMonoid a)
-instance (Generics.OneLiner.Internal.ADTRecord a, Generics.OneLiner.Internal.Constraints (Data.Monoid.OneLiner.GMonoid a) GHC.Base.Monoid) => GHC.Base.Monoid (Data.Monoid.OneLiner.GMonoid a)
+instance (Generics.OneLiner.Internal.ADTRecord a, Generics.OneLiner.Internal.Constraints a Data.Semigroup.Semigroup) => Data.Semigroup.Semigroup (Data.Monoid.OneLiner.GMonoid a)
+instance (Generics.OneLiner.Internal.ADTRecord a, Generics.OneLiner.Internal.Constraints a Data.Semigroup.Semigroup, Generics.OneLiner.Internal.Constraints a GHC.Base.Monoid) => GHC.Base.Monoid (Data.Monoid.OneLiner.GMonoid a)
+
+
+-- | Derived methods for <a>Eq</a> and <a>Ord</a>, using
+--   <a>Generics.OneLiner</a> and <a>GHC.Generics</a>.
+--   
+--   Can be used for any types (deriving <a>Generic</a>) where every field
+--   is an instance of <a>Eq</a> (or <a>Ord</a>).
+--   
+--   Also includes a newtype wrapper that imbues any such data type with
+--   instant <a>Eq</a> and <a>Ord</a> instances, which can one day be used
+--   with <i>DerivingVia</i> syntax to derive instances automatically.
+module Data.Ord.OneLiner
+
+-- | If <tt>a</tt> is a data type whose fields are all instances of
+--   <a>Eq</a>, then <tt><a>GOrd</a> a</tt> has a <a>Eq</a> instance.
+--   
+--   If <tt>a</tt> is a data type whose fields are all instances of
+--   <a>Ord</a>, then <tt><a>GOrd</a> a</tt> has a <a>Ord</a> instance.
+--   
+--   Will one day be able to be used with <i>DerivingVia</i> syntax, to
+--   derive instances automatically.
+newtype GOrd a
+GOrd :: a -> GOrd a
+[getGOrd] :: GOrd a -> a
+
+-- | <a>==</a> implemented by using <a>==</a> between all of the
+--   components, lexicographically. First compares constructors.
+gEquals :: forall a. (ADT a, Constraints a Eq) => a -> a -> Bool
+
+-- | <a>/=</a> implemented by using <a>/=</a> between all of the
+--   components, lexicographically. First compares constructors.
+gNotEquals :: forall a. (ADT a, Constraints a Eq) => a -> a -> Bool
+
+-- | <a>compare</a> implemented by using <a>compare</a> between all of the
+--   components, lexicographically. First compares constructors.
+gCompare :: forall a. (ADT a, Constraints a Ord) => a -> a -> Ordering
+
+-- | <a>&lt;=</a> implemented by using <a>&lt;=</a> between all of the
+--   components. First compares constructors.
+gLTE :: forall a. (ADT a, Constraints a Ord) => a -> a -> Bool
+
+-- | <a>&lt;</a> implemented by using <a>&lt;</a> between all of the
+--   components. First compares constructors.
+gLT :: forall a. (ADT a, Constraints a Ord) => a -> a -> Bool
+
+-- | <a>&gt;=</a> implemented by using <a>&gt;=</a> between all of the
+--   components. First compares constructors.
+gGTE :: forall a. (ADT a, Constraints a Ord) => a -> a -> Bool
+
+-- | <a>&gt;</a> implemented by using <a>&gt;</a> between all of the
+--   components. First compares constructors.
+gGT :: forall a. (ADT a, Constraints a Ord) => a -> a -> Bool
+
+-- | <a>max</a> implemented by using <a>max</a> between all of the
+--   components. First compares constructors. If two items are equal,
+--   returns the second.
+gMax :: forall a. (ADT a, Constraints a Ord) => a -> a -> a
+
+-- | <a>min</a> implemented by using <a>min</a> between all of the
+--   components. First compares constructors. If two items are equal,
+--   returns the first.
+gMin :: forall a. (ADT a, Constraints a Ord) => a -> a -> a
+instance Data.Traversable.Traversable Data.Ord.OneLiner.GOrd
+instance Data.Foldable.Foldable Data.Ord.OneLiner.GOrd
+instance GHC.Base.Functor Data.Ord.OneLiner.GOrd
+instance GHC.Generics.Generic (Data.Ord.OneLiner.GOrd a)
+instance Data.Data.Data a => Data.Data.Data (Data.Ord.OneLiner.GOrd a)
+instance GHC.Read.Read a => GHC.Read.Read (Data.Ord.OneLiner.GOrd a)
+instance GHC.Show.Show a => GHC.Show.Show (Data.Ord.OneLiner.GOrd a)
+instance (Generics.OneLiner.Internal.ADT a, Generics.OneLiner.Internal.Constraints a GHC.Classes.Eq) => GHC.Classes.Eq (Data.Ord.OneLiner.GOrd a)
+instance (Generics.OneLiner.Internal.ADT a, Generics.OneLiner.Internal.Constraints a GHC.Classes.Eq, Generics.OneLiner.Internal.Constraints a GHC.Classes.Ord) => GHC.Classes.Ord (Data.Ord.OneLiner.GOrd a)
 
 
 -- | Derived methods for numeric typeclasses, using
@@ -69,9 +184,8 @@ instance (Generics.OneLiner.Internal.ADTRecord a, Generics.OneLiner.Internal.Con
 --   
 --   Also includes a newtype wrapper that imbues any such data type with an
 --   instant <a>Num</a> (and <a>Fractional</a> and <a>Floating</a>)
---   instance.
---   
---   See README for details on usage instructions and motivations.
+--   instance, which can one day be used with <i>DerivingVia</i> syntax to
+--   derive instances automatically.
 module Numeric.OneLiner
 
 -- | If <tt>a</tt> is a data type with a single constructor whose fields
@@ -85,6 +199,9 @@ module Numeric.OneLiner
 --   If <tt>a</tt> is a data type with a single constructor whose fields
 --   are all instances of <a>Floating</a>, then <tt><a>GNum</a> a</tt> has
 --   a <a>Floating</a> instance.
+--   
+--   Will one day be able to be used with <i>DerivingVia</i> syntax, to
+--   derive instances automatically.
 newtype GNum a
 GNum :: a -> GNum a
 [getGNum] :: GNum a -> a
@@ -125,6 +242,6 @@ instance GHC.Read.Read a => GHC.Read.Read (Numeric.OneLiner.GNum a)
 instance GHC.Show.Show a => GHC.Show.Show (Numeric.OneLiner.GNum a)
 instance GHC.Classes.Ord a => GHC.Classes.Ord (Numeric.OneLiner.GNum a)
 instance GHC.Classes.Eq a => GHC.Classes.Eq (Numeric.OneLiner.GNum a)
-instance (Generics.OneLiner.Internal.ADTRecord a, Generics.OneLiner.Internal.Constraints (Numeric.OneLiner.GNum a) GHC.Num.Num) => GHC.Num.Num (Numeric.OneLiner.GNum a)
-instance (Generics.OneLiner.Internal.ADTRecord a, Generics.OneLiner.Internal.Constraints (Numeric.OneLiner.GNum a) GHC.Real.Fractional) => GHC.Real.Fractional (Numeric.OneLiner.GNum a)
-instance (Generics.OneLiner.Internal.ADTRecord a, Generics.OneLiner.Internal.Constraints (Numeric.OneLiner.GNum a) GHC.Float.Floating) => GHC.Float.Floating (Numeric.OneLiner.GNum a)
+instance (Generics.OneLiner.Internal.ADTRecord a, Generics.OneLiner.Internal.Constraints a GHC.Num.Num) => GHC.Num.Num (Numeric.OneLiner.GNum a)
+instance (Generics.OneLiner.Internal.ADTRecord a, Generics.OneLiner.Internal.Constraints a GHC.Num.Num, Generics.OneLiner.Internal.Constraints a GHC.Real.Fractional) => GHC.Real.Fractional (Numeric.OneLiner.GNum a)
+instance (Generics.OneLiner.Internal.ADTRecord a, Generics.OneLiner.Internal.Constraints a GHC.Num.Num, Generics.OneLiner.Internal.Constraints a GHC.Real.Fractional, Generics.OneLiner.Internal.Constraints a GHC.Float.Floating) => GHC.Float.Floating (Numeric.OneLiner.GNum a)
