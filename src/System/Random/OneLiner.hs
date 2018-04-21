@@ -1,3 +1,4 @@
+{-# LANGUAGE BangPatterns         #-}
 {-# LANGUAGE DeriveDataTypeable   #-}
 {-# LANGUAGE DeriveFoldable       #-}
 {-# LANGUAGE DeriveFunctor        #-}
@@ -6,28 +7,28 @@
 {-# LANGUAGE FlexibleContexts     #-}
 {-# LANGUAGE InstanceSigs         #-}
 {-# LANGUAGE ScopedTypeVariables  #-}
+{-# LANGUAGE TupleSections        #-}
 {-# LANGUAGE TypeApplications     #-}
 {-# LANGUAGE UndecidableInstances #-}
 
 -- |
--- Module      : Data.Monoid.OneLiner
--- Description : Derived methods for Semigroup and Monoid.
+-- Module      : System.Random.OneLiner
+-- Description : Derived methods for Random.
 -- Copyright   : (c) Justin Le 2018
 -- License     : BSD-3
 -- Maintainer  : justin@jle.im
 -- Stability   : unstable
 -- Portability : portable
 --
--- Derived methods for 'Semigroup' and 'Monoid', using "Generics.OneLiner"
--- and "GHC.Generics".
+-- Derived methods for 'Random', using "Generics.OneLiner" and
+-- "GHC.Generics".
 --
 -- Can be used for any types (deriving 'Generic') made with a single
--- constructor, where every field is an instance of 'Semigroup' (or
--- 'Monoid', depending on the function).
+-- constructor, where every field is an instance of 'Random'.
 --
 -- Also includes a newtype wrapper that imbues any such data type with
--- instant 'Semigroup' and 'Monoid' instances, which can one day be used
--- with /DerivingVia/ syntax to derive instances automatically.
+-- instant 'Random' instances, which can one day be used with /DerivingVia/
+-- syntax to derive instances automatically.
 --
 
 module System.Random.OneLiner (
@@ -43,10 +44,9 @@ module System.Random.OneLiner (
   , gRandomIO
   ) where
 
-import           Control.Monad.Trans.State
 import           Data.Coerce
 import           Data.Data
-import           GHC.Exts                  (build)
+import           GHC.Exts          (build)
 import           GHC.Generics
 import           Generics.OneLiner
 import           System.Random
@@ -98,22 +98,15 @@ gRandomR
     => (a, a) -> g -> (a, g)
 gRandomR (l, u) = runState $
     dialgebra @Random
-      (state . randomR . dePair)
+      (State . randomR . dePair)
       (Pair l u)
 {-# INLINE gRandomR #-}
-
-data Pair a = Pair !a !a
-    deriving Functor
-
-dePair :: Pair a -> (a, a)
-dePair (Pair x y) = (x, y)
-{-# INLINE dePair #-}
 
 -- | 'random' implemented by sequencing 'random' for all components.
 gRandom
     :: forall a g. (ADTRecord a, Constraints a Random, RandomGen g)
     => g -> (a, g)
-gRandom = runState $ createA' @Random (state random)
+gRandom = runState $ createA' @Random (State random)
 {-# INLINE gRandom #-}
 
 -- | 'randomRs' implemented by repeatedly calling 'gRandomR'.
@@ -154,3 +147,22 @@ buildRandoms cons rand = go
     -- The seq fixes part of #4218 and also makes fused Core simpler.
     go g = x `seq` (x `cons` go g') where (x,g') = rand g
 {-# INLINE buildRandoms #-}
+
+data Pair a = Pair !a !a
+    deriving Functor
+
+dePair :: Pair a -> (a, a)
+dePair (Pair x y) = (x, y)
+{-# INLINE dePair #-}
+
+newtype State s a = State { runState :: s -> (a, s) }
+    deriving Functor
+
+instance Applicative (State s) where
+    pure x = State (x,)
+    {-# INLINE pure #-}
+    sf <*> sx = State $ \s0 ->
+        let (f, !s1) = runState sf s0
+            (x, !s2) = runState sx s1
+        in  (f x, s2)
+    {-# INLINE (<*>) #-}
