@@ -1,6 +1,15 @@
 Changelog
 =========
 
+Version 0.1.2.1
+---------------
+
+*Apr 21, 2018*
+
+<https://github.com/mstksg/one-liner-instances/releases/tag/v0.1.2.1>
+
+*   Forgot to export *System.Random.OneLiner*!
+
 Version 0.1.2.0
 ---------------
 
