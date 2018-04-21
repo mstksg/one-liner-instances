@@ -27,7 +27,6 @@ dependencies:
 - base >= 4.7 && < 5
 - one-liner >= 0.9
 - random
-- vector
 
 library:
   source-dirs: src

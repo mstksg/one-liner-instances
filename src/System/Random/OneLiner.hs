@@ -54,15 +54,17 @@ module System.Random.OneLiner (
   , gRandomIOSum
   ) where
 
+import           Control.Monad
 import           Data.Coerce
 import           Data.Data
 import           Data.Functor.Compose
+import           Data.List.NonEmpty   (NonEmpty(..))
 import           Data.Maybe
 import           GHC.Exts             (build)
 import           GHC.Generics
 import           Generics.OneLiner
 import           System.Random
-import qualified Data.Vector          as V
+import qualified Data.List.NonEmpty   as NE
 
 -- | If @a@ is a data type with a single constructor whose fields are all
 -- instances of 'Random', then @'GRandom' a@ has a 'Random' instance.
@@ -204,11 +206,11 @@ gRandomRSum (l, u) = runState . fromMaybe (error badbad) . getCompose $
 gRandomSum
     :: forall a g. (ADT a, Constraints a Random, RandomGen g)
     => g -> (a, g)
-gRandomSum = runState $ do
-    n <- State $ randomR (0, V.length options - 1)
-    options V.! n
+gRandomSum = case options of
+    Nothing   -> (error "gRandomSum: Uninhabited type",)
+    Just opts -> runState (join (reservoir opts))
   where
-    options = V.fromList . getCompose $ createA @Random @a $
+    options = NE.nonEmpty . getCompose $ createA @Random @a $
         Compose [State random]
 {-# INLINE gRandomSum #-}
 
@@ -285,3 +287,15 @@ buildRandoms cons rand = go
     go g = x `seq` (x `cons` go g') where (x,g') = rand g
 {-# INLINE buildRandoms #-}
 
+-- | Select a random item from a non-empty list in constant memory, using
+-- only a single traversal, using reservoir sampling.
+reservoir :: RandomGen g => NE.NonEmpty a -> State g a
+reservoir (x :| xs) = go 2 x xs
+  where
+    go _  y []     = pure y
+    go !i y (z:zs) = do
+      j <- State $ randomR @Int (1, i)
+      if j <= 1
+        then go (i + 1) z zs
+        else go (i + 1) y zs
+{-# INLINE reservoir #-}
