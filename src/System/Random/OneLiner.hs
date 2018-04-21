@@ -32,34 +32,46 @@
 --
 
 module System.Random.OneLiner (
-  -- * Newtype wrapper
+  -- * Single constructor
+  -- ** Newtype wrapper
     GRandom(..)
-  -- * Generics-derived methods
-  -- ** Random
+  -- ** Generics-derived methods
   , gRandomR
   , gRandom
   , gRandomRs
   , gRandoms
   , gRandomRIO
   , gRandomIO
+  -- * Multiple constructor
+  -- ** Newtype wrapper
+  , GRandomSum(..)
+  -- ** Generics-derived methods
+  , gRandomRSum
+  , gRandomSum
+  , gRandomRSums
+  , gRandomSums
+  , gRandomRIOSum
+  , gRandomIOSum
   ) where
 
 import           Data.Coerce
 import           Data.Data
-import           GHC.Exts          (build)
+import           Data.Functor.Compose
+import           Data.Maybe
+import           GHC.Exts             (build)
 import           GHC.Generics
 import           Generics.OneLiner
 import           System.Random
+import qualified Data.Vector          as V
 
 -- | If @a@ is a data type with a single constructor whose fields are all
--- instances of 'Semigroup', then @'GMonoid' a@ has a 'Semigroup' instance.
---
--- If @a@ is a data type with a single constructor whose fields are all
--- instances of 'Monoid', then @'GMonoid' a@ has a 'Monoid' instance.
+-- instances of 'Random', then @'GRandom' a@ has a 'Random' instance.
 --
 -- Will one day be able to be used with /DerivingVia/ syntax, to derive
 -- instances automatically.
 --
+-- Only works with data types with single constructors.  If you need it to
+-- work with types of multiple constructors, consider 'GRandomSum'.
 newtype GRandom a = GRandom { getGRandom :: a }
   deriving (Eq, Ord, Show, Read, Data, Generic, Functor, Foldable, Traversable)
 
@@ -67,32 +79,28 @@ instance ( ADTRecord a
          , Constraints a Random
          )
       => Random (GRandom a) where
-
     randomR :: forall g. RandomGen g => (GRandom a, GRandom a) -> g -> (GRandom a, g)
     randomR = coerce (gRandomR @a @g)
     {-# INLINE randomR #-}
-
     random :: forall g. RandomGen g => g -> (GRandom a, g)
     random = coerce (gRandom @a @g)
     {-# INLINE random #-}
-
     randomRs :: forall g. RandomGen g => (GRandom a, GRandom a) -> g -> [GRandom a]
     randomRs = coerce (gRandomRs @a @g)
     {-# INLINE randomRs #-}
-
     randoms :: forall g. RandomGen g => g -> [GRandom a]
     randoms = coerce (gRandoms @a @g)
     {-# INLINE randoms #-}
-
     randomRIO :: (GRandom a, GRandom a) -> IO (GRandom a)
     randomRIO = coerce (gRandomRIO @a)
     {-# INLINE randomRIO #-}
-
     randomIO :: IO (GRandom a)
     randomIO = coerce (gRandomIO @a)
     {-# INLINE randomIO #-}
 
 -- | 'randomR' implemented by sequencing 'randomR' between all components
+--
+-- Requires the type to have only a single constructor.
 gRandomR
     :: forall a g. (ADTRecord a, Constraints a Random, RandomGen g)
     => (a, a) -> g -> (a, g)
@@ -103,6 +111,8 @@ gRandomR (l, u) = runState $
 {-# INLINE gRandomR #-}
 
 -- | 'random' implemented by sequencing 'random' for all components.
+--
+-- Requires the type to have only a single constructor.
 gRandom
     :: forall a g. (ADTRecord a, Constraints a Random, RandomGen g)
     => g -> (a, g)
@@ -116,7 +126,7 @@ gRandomRs
 gRandomRs ival g = build (\cons _nil -> buildRandoms cons (gRandomR ival) g)
 {-# INLINE gRandomRs #-}
 
--- | 'randoms' implemented by repeatedly calling 'gRandoms'.
+-- | 'randoms' implemented by repeatedly calling 'gRandom'.
 gRandoms
     :: forall a g. (ADTRecord a, Constraints a Random, RandomGen g)
     => g -> [a]
@@ -137,16 +147,105 @@ gRandomIO
 gRandomIO = getStdRandom gRandom
 {-# INLINE gRandomIO #-}
 
-buildRandoms :: RandomGen g
-             => (a -> as -> as)  -- ^ E.g. '(:)' but subject to fusion
-             -> (g -> (a,g))     -- ^ E.g. 'random'
-             -> g                -- ^ A 'RandomGen' instance
-             -> as
-buildRandoms cons rand = go
+-- | If @a@ is a data type whose fields are all instances of 'Random', then
+-- @'GRandom' a@ has a 'Random' instance.
+--
+-- Will one day be able to be used with /DerivingVia/ syntax, to derive
+-- instances automatically.
+--
+-- A version of 'GRandom' that works for data types with multiple
+-- constructors.  If your type has only one constructor, it might be more
+-- performant to use 'GRandom'.
+--
+-- Note that the "ranged" variants are partial: if given a range of items
+-- made with different constructors, will be 'error'!
+newtype GRandomSum a = GRandomSum { getGRandomSum :: a }
+  deriving (Eq, Ord, Show, Read, Data, Generic, Functor, Foldable, Traversable)
+
+instance ( ADT a
+         , Constraints a Random
+         )
+      => Random (GRandomSum a) where
+    randomR :: forall g. RandomGen g => (GRandomSum a, GRandomSum a) -> g -> (GRandomSum a, g)
+    randomR = coerce (gRandomRSum @a @g)
+    {-# INLINE randomR #-}
+    random :: forall g. RandomGen g => g -> (GRandomSum a, g)
+    random = coerce (gRandomSum @a @g)
+    {-# INLINE random #-}
+    randomRs :: forall g. RandomGen g => (GRandomSum a, GRandomSum a) -> g -> [GRandomSum a]
+    randomRs = coerce (gRandomRSums @a @g)
+    {-# INLINE randomRs #-}
+    randoms :: forall g. RandomGen g => g -> [GRandomSum a]
+    randoms = coerce (gRandomSums @a @g)
+    {-# INLINE randoms #-}
+    randomRIO :: (GRandomSum a, GRandomSum a) -> IO (GRandomSum a)
+    randomRIO = coerce (gRandomRIOSum @a)
+    {-# INLINE randomRIO #-}
+    randomIO :: IO (GRandomSum a)
+    randomIO = coerce (gRandomIOSum @a)
+    {-# INLINE randomIO #-}
+
+-- | 'randomR' implemented by sequencing 'randomR' between all components.
+--
+-- If given a range of items made with different constructors, will be
+-- 'error'!
+gRandomRSum
+    :: forall a g. (ADT a, Constraints a Random, RandomGen g)
+    => (a, a) -> g -> (a, g)
+gRandomRSum (l, u) = runState . fromMaybe (error badbad) . getCompose $
+    zipWithA @Random (\l' u' -> Compose (Just (State (randomR (l', u')))))
+      l u
   where
-    -- The seq fixes part of #4218 and also makes fused Core simpler.
-    go g = x `seq` (x `cons` go g') where (x,g') = rand g
-{-# INLINE buildRandoms #-}
+    badbad = "gRandomRSum: Constructors in range do not match."
+{-# INLINE gRandomRSum #-}
+
+-- | 'random' implemented by selecting a random constructor and sequencing
+-- 'random' for all components.
+gRandomSum
+    :: forall a g. (ADT a, Constraints a Random, RandomGen g)
+    => g -> (a, g)
+gRandomSum = runState $ do
+    n <- State $ randomR (0, V.length options - 1)
+    options V.! n
+  where
+    options = V.fromList . getCompose $ createA @Random @a $
+        Compose [State random]
+{-# INLINE gRandomSum #-}
+
+-- | 'randomRs' implemented by repeatedly calling 'gRandomRSum'.
+--
+-- If given a range of items made with different constructors, will be
+-- 'error'!
+gRandomRSums
+    :: forall a g. (ADT a, Constraints a Random, RandomGen g)
+    => (a, a) -> g -> [a]
+gRandomRSums ival g = build (\cons _nil -> buildRandoms cons (gRandomRSum ival) g)
+{-# INLINE gRandomRSums #-}
+
+-- | 'randoms' implemented by repeatedly calling 'gRandomSum'.
+gRandomSums
+    :: forall a g. (ADT a, Constraints a Random, RandomGen g)
+    => g -> [a]
+gRandomSums g = build (\cons _nil -> buildRandoms cons gRandomSum g)
+{-# INLINE gRandomSums #-}
+
+-- | 'randomRIO' implemented by calling 'gRandomRSum' on the global seed.
+--
+-- If given a range of items made with different constructors, will be
+-- 'error'!
+gRandomRIOSum
+    :: forall a. (ADT a, Constraints a Random)
+    => (a, a) -> IO a
+gRandomRIOSum range = getStdRandom (gRandomRSum range)
+{-# INLINE gRandomRIOSum #-}
+
+-- | 'randomIO' implemented by calling 'gRandom' on the global seed.
+gRandomIOSum
+    :: forall a. (ADT a, Constraints a Random)
+    => IO a
+gRandomIOSum = getStdRandom gRandomSum
+{-# INLINE gRandomIOSum #-}
+
 
 data Pair a = Pair !a !a
     deriving Functor
@@ -166,3 +265,23 @@ instance Applicative (State s) where
             (x, !s2) = runState sx s1
         in  (f x, s2)
     {-# INLINE (<*>) #-}
+
+instance Monad (State s) where
+    return x = State (x,)
+    {-# INLINE return #-}
+    sx >>= f = State $ \s0 ->
+      let (x, !s1) = runState sx s0
+      in  runState (f x) s1
+    {-# INLINE (>>=) #-}
+
+buildRandoms :: RandomGen g
+             => (a -> as -> as)  -- ^ E.g. '(:)' but subject to fusion
+             -> (g -> (a,g))     -- ^ E.g. 'random'
+             -> g                -- ^ A 'RandomGen' instance
+             -> as
+buildRandoms cons rand = go
+  where
+    -- The seq fixes part of #4218 and also makes fused Core simpler.
+    go g = x `seq` (x `cons` go g') where (x,g') = rand g
+{-# INLINE buildRandoms #-}
+

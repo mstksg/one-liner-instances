@@ -1,6 +1,15 @@
 Changelog
 =========
 
+Version 0.1.2.0
+---------------
+
+*Apr 20, 2018*
+
+<https://github.com/mstksg/one-liner-instances/releases/tag/v0.1.2.0>
+
+*   Generic instances for `Random` from the *random* package.
+
 Version 0.1.1.0
 ---------------
 

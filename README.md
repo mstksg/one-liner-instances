@@ -3,11 +3,12 @@ one-liner-instances
 
 This package uses machinery from *[one-liner][]* in order to provide default
 implementations for methods from `Num`, `Fractional`, `Floating`, `Semigroup`,
-`Monoid`, `Bounded`, `Eq`, and `Ord`.  These will work for any types (deriving
-`Generic`) whose fields are all instances of that typeclass.
+`Monoid`, `Bounded`, `Eq`, `Ord`, and `Random`.  These will work for any types
+(deriving `Generic`) whose fields are all instances of that typeclass.
 
 For `Num`, `Fractional`, `Floating`, `Semigroup`, and `Monoid`, the types also
-must have only a single constructor.
+must have only a single constructor.  `Random` methods offer variants with
+single constructors (for performance) and with multiple constructors.
 
 [one-liner]: https://hackage.haskell.org/package/one-liner
 

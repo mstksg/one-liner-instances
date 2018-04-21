@@ -1,5 +1,5 @@
 name:                one-liner-instances
-version:             0.1.1.0
+version:             0.1.2.0
 github:              "mstksg/one-liner-instances"
 license:             BSD3
 author:              "Justin Le"
@@ -27,6 +27,7 @@ dependencies:
 - base >= 4.7 && < 5
 - one-liner >= 0.9
 - random
+- vector
 
 library:
   source-dirs: src
