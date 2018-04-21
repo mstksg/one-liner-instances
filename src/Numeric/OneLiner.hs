@@ -67,10 +67,10 @@ module Numeric.OneLiner (
   , gAtanh
   ) where
 
+import           Data.Coerce
 import           Data.Data
 import           GHC.Generics
 import           Generics.OneLiner
-import           Generics.OneLiner.Instances.Internal
 
 -- | If @a@ is a data type with a single constructor whose fields are all
 -- instances of 'Num', then @'GNum' a@ has a 'Num' instance.
@@ -89,19 +89,19 @@ newtype GNum a = GNum { getGNum :: a }
 
 instance (ADTRecord a, Constraints a Num)
       => Num (GNum a) where
-    (+)         = c2 (gPlus @a)
+    (+)         = coerce (gPlus @a)
     {-# INLINE (+) #-}
-    (-)         = c2 (gMinus @a)
+    (-)         = coerce (gMinus @a)
     {-# INLINE (-) #-}
-    (*)         = c2 (gTimes @a)
+    (*)         = coerce (gTimes @a)
     {-# INLINE (*) #-}
-    negate      = c1 (gNegate @a)
+    negate      = coerce (gNegate @a)
     {-# INLINE negate #-}
-    abs         = c1 (gAbs @a)
+    abs         = coerce (gAbs @a)
     {-# INLINE abs #-}
-    signum      = c1 (gSignum @a)
+    signum      = coerce (gSignum @a)
     {-# INLINE signum #-}
-    fromInteger = c0 (gFromInteger @a)
+    fromInteger = coerce (gFromInteger @a)
     {-# INLINE fromInteger #-}
 
 instance ( ADTRecord a
@@ -109,11 +109,11 @@ instance ( ADTRecord a
          , Constraints a Fractional
          )
       => Fractional (GNum a) where
-    (/)          = c2 (gDivide @a)
+    (/)          = coerce (gDivide @a)
     {-# INLINE (/) #-}
-    recip        = c1 (gRecip @a)
+    recip        = coerce (gRecip @a)
     {-# INLINE recip #-}
-    fromRational = c0 (gFromRational @a)
+    fromRational = coerce (gFromRational @a)
     {-# INLINE fromRational #-}
 
 instance ( ADTRecord a
@@ -122,41 +122,41 @@ instance ( ADTRecord a
          , Constraints a Floating
          )
       => Floating (GNum a) where
-    pi      = c0 (gPi @a)
+    pi      = coerce (gPi @a)
     {-# INLINE pi #-}
-    exp     = c1 (gExp @a)
+    exp     = coerce (gExp @a)
     {-# INLINE exp #-}
-    log     = c1 (gLog @a)
+    log     = coerce (gLog @a)
     {-# INLINE log #-}
-    sqrt    = c1 (gSqrt @a)
+    sqrt    = coerce (gSqrt @a)
     {-# INLINE sqrt #-}
-    (**)    = c2 (gPower @a)
+    (**)    = coerce (gPower @a)
     {-# INLINE (**) #-}
-    logBase = c2 (gLogBase @a)
+    logBase = coerce (gLogBase @a)
     {-# INLINE logBase #-}
-    sin     = c1 (gSin @a)
+    sin     = coerce (gSin @a)
     {-# INLINE sin #-}
-    cos     = c1 (gCos @a)
+    cos     = coerce (gCos @a)
     {-# INLINE cos #-}
-    tan     = c1 (gTan @a)
+    tan     = coerce (gTan @a)
     {-# INLINE tan #-}
-    asin    = c1 (gAsin @a)
+    asin    = coerce (gAsin @a)
     {-# INLINE asin #-}
-    acos    = c1 (gAcos @a)
+    acos    = coerce (gAcos @a)
     {-# INLINE acos #-}
-    atan    = c1 (gAtan @a)
+    atan    = coerce (gAtan @a)
     {-# INLINE atan #-}
-    sinh    = c1 (gSinh @a)
+    sinh    = coerce (gSinh @a)
     {-# INLINE sinh #-}
-    cosh    = c1 (gCosh @a)
+    cosh    = coerce (gCosh @a)
     {-# INLINE cosh #-}
-    tanh    = c1 (gTanh @a)
+    tanh    = coerce (gTanh @a)
     {-# INLINE tanh #-}
-    asinh   = c1 (gAsinh @a)
+    asinh   = coerce (gAsinh @a)
     {-# INLINE asinh #-}
-    acosh   = c1 (gAcosh @a)
+    acosh   = coerce (gAcosh @a)
     {-# INLINE acosh #-}
-    atanh   = c1 (gAtanh @a)
+    atanh   = coerce (gAtanh @a)
     {-# INLINE atanh #-}
 
 -- $num

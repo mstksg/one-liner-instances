@@ -36,10 +36,10 @@ module Data.Bounded.OneLiner (
   , gMaxBound
   ) where
 
+import           Data.Coerce
 import           Data.Data
 import           GHC.Generics
 import           Generics.OneLiner
-import           Generics.OneLiner.Instances.Internal
 
 -- | If @a@ is a data type whose fields are all instances of 'Bounded',
 -- then @'GBounded' a@ has a 'Bounded' instance.
@@ -54,9 +54,9 @@ instance ( ADT a
          , Constraints a Bounded
          )
       => Bounded (GBounded a) where
-    minBound = c0 (gMinBound @a)
+    minBound = coerce (gMinBound @a)
     {-# INLINE minBound #-}
-    maxBound = c0 (gMaxBound @a)
+    maxBound = coerce (gMaxBound @a)
     {-# INLINE maxBound #-}
 
 -- | 'minBound' implemented by using 'minBound' for all of the components

@@ -19,14 +19,15 @@ category:            Web
 # common to point users to the README.md file.
 description: |
   Provides generics-based implementations for common typeclasses using
-  Generics.  For now, has implementations for Numeric typeclasses (Num,
-  Fractional, and Floating) and Semigroup and Monoid.
+  Generics.
 
   Please see the README on Github at <https://github.com/mstksg/one-liner-instances#readme>
 
 dependencies:
 - base >= 4.7 && < 5
 - one-liner >= 0.9
+- random
+- transformers
 
 library:
   source-dirs: src

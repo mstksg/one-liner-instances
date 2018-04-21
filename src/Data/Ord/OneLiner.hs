@@ -45,11 +45,11 @@ module Data.Ord.OneLiner (
   , gMin
   ) where
 
+import           Data.Coerce
 import           Data.Data
 import           Data.Monoid
 import           GHC.Generics
 import           Generics.OneLiner
-import           Generics.OneLiner.Instances.Internal
 
 -- | If @a@ is a data type whose fields are all instances of 'Eq', then
 -- @'GOrd' a@ has a 'Eq' instance.
@@ -67,9 +67,9 @@ instance ( ADT a
          , Constraints a Eq
          )
       => Eq (GOrd a) where
-    (==) = c2' (gEquals @a)
+    (==) = coerce (gEquals @a)
     {-# INLINE (==) #-}
-    (/=) = c2' (gNotEquals @a)
+    (/=) = coerce (gNotEquals @a)
     {-# INLINE (/=) #-}
 
 instance ( ADT a
@@ -77,19 +77,19 @@ instance ( ADT a
          , Constraints a Ord
          )
       => Ord (GOrd a) where
-    compare = c2' (gCompare @a)
+    compare = coerce (gCompare @a)
     {-# INLINE compare #-}
-    (<=)    = c2' (gLTE @a)
+    (<=)    = coerce (gLTE @a)
     {-# INLINE (<=) #-}
-    (<)     = c2' (gLT @a)
+    (<)     = coerce (gLT @a)
     {-# INLINE (<) #-}
-    (>=)    = c2' (gGTE @a)
+    (>=)    = coerce (gGTE @a)
     {-# INLINE (>=) #-}
-    (>)     = c2' (gGT @a)
+    (>)     = coerce (gGT @a)
     {-# INLINE (>) #-}
-    max     = c2 (gMax @a)
+    max     = coerce (gMax @a)
     {-# INLINE max #-}
-    min     = c2 (gMin @a)
+    min     = coerce (gMin @a)
     {-# INLINE min #-}
 
 -- | '==' implemented by using '==' between all of the

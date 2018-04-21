@@ -40,11 +40,11 @@ module Data.Monoid.OneLiner (
   , gMempty
   ) where
 
+import           Data.Coerce
 import           Data.Data
 import           Data.Semigroup
 import           GHC.Generics
 import           Generics.OneLiner
-import           Generics.OneLiner.Instances.Internal
 
 -- | If @a@ is a data type with a single constructor whose fields are all
 -- instances of 'Semigroup', then @'GMonoid' a@ has a 'Semigroup' instance.
@@ -62,7 +62,7 @@ instance ( ADTRecord a
          , Constraints a Semigroup
          )
       => Semigroup (GMonoid a) where
-    (<>) = c2 (gSemigroup @a)
+    (<>) = coerce (gSemigroup @a)
     {-# INLINE (<>) #-}
 
 instance ( ADTRecord a
@@ -70,9 +70,9 @@ instance ( ADTRecord a
          , Constraints a Monoid
          )
       => Monoid (GMonoid a) where
-    mappend = c2 (gMappend @a)
+    mappend = coerce (gMappend @a)
     {-# INLINE mappend #-}
-    mempty  = c0 (gMempty @a)
+    mempty  = coerce (gMempty @a)
     {-# INLINE mempty #-}
 
 
