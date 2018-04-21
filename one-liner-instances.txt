@@ -10,7 +10,7 @@
 --   Please see the README on Github at
 --   <a>https://github.com/mstksg/one-liner-instances#readme</a>
 @package one-liner-instances
-@version 0.1.1.0
+@version 0.1.2.0
 
 
 -- | Derived methods for <a>Bounded</a>, using <a>Generics.OneLiner</a> and
