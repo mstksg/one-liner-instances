@@ -30,6 +30,7 @@
 -- instant 'Random' instances, which can one day be used with /DerivingVia/
 -- syntax to derive instances automatically.
 --
+-- @since 0.1.2.1
 
 module System.Random.OneLiner (
   -- * Single constructor
@@ -74,6 +75,8 @@ import qualified Data.List.NonEmpty   as NE
 --
 -- Only works with data types with single constructors.  If you need it to
 -- work with types of multiple constructors, consider 'GRandomSum'.
+--
+-- @since 0.1.2.1
 newtype GRandom a = GRandom { getGRandom :: a }
   deriving (Eq, Ord, Show, Read, Data, Generic, Functor, Foldable, Traversable)
 
@@ -103,6 +106,8 @@ instance ( ADTRecord a
 -- | 'randomR' implemented by sequencing 'randomR' between all components
 --
 -- Requires the type to have only a single constructor.
+--
+-- @since 0.1.2.1
 gRandomR
     :: forall a g. (ADTRecord a, Constraints a Random, RandomGen g)
     => (a, a) -> g -> (a, g)
@@ -115,6 +120,8 @@ gRandomR (l, u) = runState $
 -- | 'random' implemented by sequencing 'random' for all components.
 --
 -- Requires the type to have only a single constructor.
+--
+-- @since 0.1.2.1
 gRandom
     :: forall a g. (ADTRecord a, Constraints a Random, RandomGen g)
     => g -> (a, g)
@@ -122,6 +129,8 @@ gRandom = runState $ createA' @Random (State random)
 {-# INLINE gRandom #-}
 
 -- | 'randomRs' implemented by repeatedly calling 'gRandomR'.
+--
+-- @since 0.1.2.1
 gRandomRs
     :: forall a g. (ADTRecord a, Constraints a Random, RandomGen g)
     => (a, a) -> g -> [a]
@@ -129,6 +138,8 @@ gRandomRs ival g = build (\cons _nil -> buildRandoms cons (gRandomR ival) g)
 {-# INLINE gRandomRs #-}
 
 -- | 'randoms' implemented by repeatedly calling 'gRandom'.
+--
+-- @since 0.1.2.1
 gRandoms
     :: forall a g. (ADTRecord a, Constraints a Random, RandomGen g)
     => g -> [a]
@@ -136,6 +147,8 @@ gRandoms g = build (\cons _nil -> buildRandoms cons gRandom g)
 {-# INLINE gRandoms #-}
 
 -- | 'randomRIO' implemented by calling 'gRandomR' on the global seed.
+--
+-- @since 0.1.2.1
 gRandomRIO
     :: forall a. (ADTRecord a, Constraints a Random)
     => (a, a) -> IO a
@@ -143,6 +156,8 @@ gRandomRIO range = getStdRandom (gRandomR range)
 {-# INLINE gRandomRIO #-}
 
 -- | 'randomIO' implemented by calling 'gRandom' on the global seed.
+--
+-- @since 0.1.2.1
 gRandomIO
     :: forall a. (ADTRecord a, Constraints a Random)
     => IO a
@@ -161,6 +176,8 @@ gRandomIO = getStdRandom gRandom
 --
 -- Note that the "ranged" variants are partial: if given a range of items
 -- made with different constructors, will be 'error'!
+--
+-- @since 0.1.2.1
 newtype GRandomSum a = GRandomSum { getGRandomSum :: a }
   deriving (Eq, Ord, Show, Read, Data, Generic, Functor, Foldable, Traversable)
 
@@ -191,6 +208,8 @@ instance ( ADT a
 --
 -- If given a range of items made with different constructors, will be
 -- 'error'!
+--
+-- @since 0.1.2.1
 gRandomRSum
     :: forall a g. (ADT a, Constraints a Random, RandomGen g)
     => (a, a) -> g -> (a, g)
@@ -203,6 +222,8 @@ gRandomRSum (l, u) = runState . fromMaybe (error badbad) . getCompose $
 
 -- | 'random' implemented by selecting a random constructor and sequencing
 -- 'random' for all components.
+--
+-- @since 0.1.2.1
 gRandomSum
     :: forall a g. (ADT a, Constraints a Random, RandomGen g)
     => g -> (a, g)
@@ -218,6 +239,8 @@ gRandomSum = case options of
 --
 -- If given a range of items made with different constructors, will be
 -- 'error'!
+--
+-- @since 0.1.2.1
 gRandomRSums
     :: forall a g. (ADT a, Constraints a Random, RandomGen g)
     => (a, a) -> g -> [a]
@@ -225,6 +248,8 @@ gRandomRSums ival g = build (\cons _nil -> buildRandoms cons (gRandomRSum ival) 
 {-# INLINE gRandomRSums #-}
 
 -- | 'randoms' implemented by repeatedly calling 'gRandomSum'.
+--
+-- @since 0.1.2.1
 gRandomSums
     :: forall a g. (ADT a, Constraints a Random, RandomGen g)
     => g -> [a]
@@ -235,6 +260,8 @@ gRandomSums g = build (\cons _nil -> buildRandoms cons gRandomSum g)
 --
 -- If given a range of items made with different constructors, will be
 -- 'error'!
+--
+-- @since 0.1.2.1
 gRandomRIOSum
     :: forall a. (ADT a, Constraints a Random)
     => (a, a) -> IO a

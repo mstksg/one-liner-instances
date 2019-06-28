@@ -67,7 +67,6 @@ gMinBound
 gMinBound = case create @Bounded [minBound] of
               []  -> error "minBound: uninhabited"
               x:_ -> x
-{-# INLINE gMinBound #-}
 
 -- | 'maxBound' implemented by using 'maxBound' for all of the components
 -- for the last constructor
@@ -77,4 +76,3 @@ gMaxBound
 gMaxBound = case reverse (create @Bounded [maxBound]) of
               []  -> error "maxBound: uninhabited"
               x:_ -> x
-{-# INLINE gMaxBound #-}
