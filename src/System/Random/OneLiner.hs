@@ -1,4 +1,5 @@
 {-# LANGUAGE BangPatterns         #-}
+{-# LANGUAGE CPP                  #-}
 {-# LANGUAGE DeriveDataTypeable   #-}
 {-# LANGUAGE DeriveFoldable       #-}
 {-# LANGUAGE DeriveFunctor        #-}
@@ -14,7 +15,7 @@
 -- |
 -- Module      : System.Random.OneLiner
 -- Description : Derived methods for Random.
--- Copyright   : (c) Justin Le 2018
+-- Copyright   : (c) Justin Le 2021
 -- License     : BSD-3
 -- Maintainer  : justin@jle.im
 -- Stability   : unstable
@@ -65,6 +66,7 @@ import           GHC.Exts             (build)
 import           GHC.Generics
 import           Generics.OneLiner
 import           System.Random
+import           System.Random.OneLiner.Internal (Pair(..), dePair, State(..))
 import qualified Data.List.NonEmpty   as NE
 
 -- | If @a@ is a data type with a single constructor whose fields are all
@@ -96,12 +98,6 @@ instance ( ADTRecord a
     randoms :: forall g. RandomGen g => g -> [GRandom a]
     randoms = coerce (gRandoms @a @g)
     {-# INLINE randoms #-}
-    randomRIO :: (GRandom a, GRandom a) -> IO (GRandom a)
-    randomRIO = coerce (gRandomRIO @a)
-    {-# INLINE randomRIO #-}
-    randomIO :: IO (GRandom a)
-    randomIO = coerce (gRandomIO @a)
-    {-# INLINE randomIO #-}
 
 -- | 'randomR' implemented by sequencing 'randomR' between all components
 --
@@ -197,12 +193,6 @@ instance ( ADT a
     randoms :: forall g. RandomGen g => g -> [GRandomSum a]
     randoms = coerce (gRandomSums @a @g)
     {-# INLINE randoms #-}
-    randomRIO :: (GRandomSum a, GRandomSum a) -> IO (GRandomSum a)
-    randomRIO = coerce (gRandomRIOSum @a)
-    {-# INLINE randomRIO #-}
-    randomIO :: IO (GRandomSum a)
-    randomIO = coerce (gRandomIOSum @a)
-    {-# INLINE randomIO #-}
 
 -- | 'randomR' implemented by sequencing 'randomR' between all components.
 --
@@ -275,33 +265,6 @@ gRandomIOSum
 gRandomIOSum = getStdRandom gRandomSum
 {-# INLINE gRandomIOSum #-}
 
-
-data Pair a = Pair !a !a
-    deriving Functor
-
-dePair :: Pair a -> (a, a)
-dePair (Pair x y) = (x, y)
-{-# INLINE dePair #-}
-
-newtype State s a = State { runState :: s -> (a, s) }
-    deriving Functor
-
-instance Applicative (State s) where
-    pure x = State (x,)
-    {-# INLINE pure #-}
-    sf <*> sx = State $ \s0 ->
-        let (f, !s1) = runState sf s0
-            (x, !s2) = runState sx s1
-        in  (f x, s2)
-    {-# INLINE (<*>) #-}
-
-instance Monad (State s) where
-    return x = State (x,)
-    {-# INLINE return #-}
-    sx >>= f = State $ \s0 ->
-      let (x, !s1) = runState sx s0
-      in  runState (f x) s1
-    {-# INLINE (>>=) #-}
 
 buildRandoms :: RandomGen g
              => (a -> as -> as)  -- ^ E.g. '(:)' but subject to fusion

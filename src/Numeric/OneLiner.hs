@@ -11,7 +11,7 @@
 -- |
 -- Module      : Numeric.OneLiner
 -- Description : Derived methods for numeric typeclasses
--- Copyright   : (c) Justin Le 2018
+-- Copyright   : (c) Justin Le 2021
 -- License     : BSD-3
 -- Maintainer  : justin@jle.im
 -- Stability   : unstable

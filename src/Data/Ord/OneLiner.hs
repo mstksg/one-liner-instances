@@ -11,7 +11,7 @@
 -- |
 -- Module      : Data.Ord.OneLiner
 -- Description : Derived methods for Semigroup.
--- Copyright   : (c) Justin Le 2018
+-- Copyright   : (c) Justin Le 2021
 -- License     : BSD-3
 -- Maintainer  : justin@jle.im
 -- Stability   : unstable

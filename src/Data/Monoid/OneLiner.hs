@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP                  #-}
 {-# LANGUAGE DeriveDataTypeable   #-}
 {-# LANGUAGE DeriveFoldable       #-}
 {-# LANGUAGE DeriveFunctor        #-}
@@ -11,7 +12,7 @@
 -- |
 -- Module      : Data.Monoid.OneLiner
 -- Description : Derived methods for Semigroup and Monoid.
--- Copyright   : (c) Justin Le 2018
+-- Copyright   : (c) Justin Le 2021
 -- License     : BSD-3
 -- Maintainer  : justin@jle.im
 -- Stability   : unstable
@@ -42,9 +43,12 @@ module Data.Monoid.OneLiner (
 
 import           Data.Coerce
 import           Data.Data
-import           Data.Semigroup
 import           GHC.Generics
 import           Generics.OneLiner
+
+#if !MIN_VERSION_base(4,11,0)
+import           Data.Semigroup
+#endif
 
 -- | If @a@ is a data type with a single constructor whose fields are all
 -- instances of 'Semigroup', then @'GMonoid' a@ has a 'Semigroup' instance.

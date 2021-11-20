@@ -1,6 +1,17 @@
 Changelog
 =========
 
+Version 0.1.3.0
+---------------
+
+*Nov 20, 2021*
+
+<https://github.com/mstksg/one-liner-instances/releases/tag/v0.1.3.0>
+
+*   Fixed builds for *random-1.2*
+*   Fixed warnings for *base-4.11*
+*   Added support for new *System.Random.Stateful* instances for *random* library
+
 Version 0.1.2.1
 ---------------
 
